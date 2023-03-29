@@ -50,7 +50,7 @@ app.get("/user/:id", (req, res) => {
   const id = req.params.id;
 
   const findUser = async () => {
-    const userFind = await User.findOne({ id });
+    const userFind = await User.findById(id);
 
     if (!userFind) {
       res.status(400).json({
@@ -80,7 +80,7 @@ app.put("/update/:id", (req, res) => {
     });
   } else {
     const update = async () => {
-      const findUser = await User.findOne({ id });
+      const findUser = await User.findById(id);
 
       if (!findUser) {
         res.status(400).json({
@@ -89,20 +89,23 @@ app.put("/update/:id", (req, res) => {
         });
       } else {
         if (newEmail == undefined) {
-          await User.updateOne({ id }, { $set: { firstname: newFirstname } });
+          await User.updateOne(
+            { _id: id },
+            { $set: { firstname: newFirstname } }
+          );
           res.status(200).json({
             message: "firstname updated",
             success: true,
           });
         } else if (newFirstname == undefined) {
-          await User.updateOne({ id }, { $set: { email: newEmail } });
+          await User.updateOne({ _id: id }, { $set: { email: newEmail } });
           res.status(200).json({
             message: "email updated",
             success: true,
           });
         } else {
           await User.updateOne(
-            { id },
+            { _id: id },
             { $set: { email: newEmail, firstname: newFirstname } }
           );
 
@@ -122,7 +125,7 @@ app.delete("/delete/:id", (req, res) => {
   const id = req.params.id;
 
   const deleteUser = async () => {
-    const findUser = await User.findOne({ id });
+    const findUser = await User.findById(id);
 
     if (!findUser) {
       res.status(400).json({
@@ -130,7 +133,7 @@ app.delete("/delete/:id", (req, res) => {
         success: false,
       });
     } else {
-      await User.deleteOne({ id });
+      await User.deleteOne({ _id: id });
       res.status(200).json({
         success: true,
         message: "User deleted",
@@ -142,5 +145,5 @@ app.delete("/delete/:id", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`The Tutorial 7 is listinf on port ${port}`);
+  console.log(`The Tutorial 7 is listing on port ${port}`);
 });
