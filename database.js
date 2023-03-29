@@ -15,11 +15,11 @@ mongoose
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
-    requir: true,
+    required: true,
   },
-  firstname: {
+  firstName: {
     type: String,
-    requir: true,
+    required: true,
   },
 });
 

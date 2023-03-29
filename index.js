@@ -11,12 +11,18 @@ app.get("/", (req, res) => {
 
 app.get("/users", (req, res) => {
   const getUsers = async () => {
-    const users = await User.find();
-    res.status(200).json({
-      message: "Users retrieved",
-      success: true,
-      users: users,
-    });
+    try {
+      const users = await User.find();
+      res.status(200).json({
+        message: "Users retrieved",
+        success: true,
+        users: users,
+      });
+    } catch (error) {
+      res.status(404).json({
+        message: "Somthing went wrong......",
+      });
+    }
   };
 
   getUsers();
@@ -24,8 +30,13 @@ app.get("/users", (req, res) => {
 
 app.post("/add", (req, res) => {
   const newEmail = req.body.email;
-  const newFirstname = req.body.firstname;
-  if (newEmail == undefined || newFirstname == undefined) {
+  const newFirstname = req.body.firstName;
+  if (
+    newEmail == undefined ||
+    newFirstname == undefined ||
+    newEmail == "" ||
+    newFirstname == ""
+  ) {
     res.status(400).json({
       message: "Invalide Input",
       success: false,
@@ -34,7 +45,7 @@ app.post("/add", (req, res) => {
     const addUser = async () => {
       const user = await User.create({
         email: newEmail,
-        firstname: newFirstname,
+        firstName: newFirstname,
       });
       res.status(200).json({
         message: "User added",
@@ -50,17 +61,23 @@ app.get("/user/:id", (req, res) => {
   const id = req.params.id;
 
   const findUser = async () => {
-    const userFind = await User.findById(id);
-
-    if (!userFind) {
+    try {
+      const userFind = await User.findOne({ _id: id });
+      if (userFind == null || userFind == undefined) {
+        res.status(400).json({
+          message: `ID ${id} is not available in list`,
+          success: false,
+        });
+      } else {
+        res.status(200).json({
+          success: true,
+          user: userFind,
+        });
+      }
+    } catch (error) {
       res.status(400).json({
         message: `ID ${id} is not available in list`,
         success: false,
-      });
-    } else {
-      res.status(200).json({
-        success: true,
-        user: userFind,
       });
     }
   };
@@ -71,49 +88,61 @@ app.get("/user/:id", (req, res) => {
 app.put("/update/:id", (req, res) => {
   const id = req.params.id;
   const newEmail = req.body.email;
-  const newFirstname = req.body.firstname;
+  const newFirstname = req.body.firstName;
 
-  if (newEmail == undefined && newFirstname == undefined) {
+  if (
+    (newEmail == undefined && newFirstname == undefined) ||
+    newEmail == "" ||
+    newFirstname == ""
+  ) {
     res.status(400).json({
-      message: "Invalide Input email and firstname is not available",
+      message: "Invalide Input email or firstname is not available",
       success: false,
     });
   } else {
     const update = async () => {
-      const findUser = await User.findById(id);
+      try {
+        const findUser = await User.findById(id);
+        console.log(findUser);
 
-      if (!findUser) {
+        if (!findUser) {
+          res.status(400).json({
+            message: `ID ${id} is not available in list`,
+            success: false,
+          });
+        } else {
+          if (newFirstname && newFirstname != "" && newEmail == "") {
+            await User.updateOne(
+              { _id: id },
+              { $set: { firstName: newFirstname } }
+            );
+            res.status(200).json({
+              message: "firstName updated",
+              success: true,
+            });
+          } else if (newEmail && newEmail != "" && newFirstname == "") {
+            await User.updateOne({ _id: id }, { $set: { email: newEmail } });
+            res.status(200).json({
+              message: "email updated",
+              success: true,
+            });
+          } else {
+            await User.updateOne(
+              { _id: id },
+              { $set: { email: newEmail, firstName: newFirstname } }
+            );
+
+            res.status(200).json({
+              message: "User updated",
+              success: true,
+            });
+          }
+        }
+      } catch (error) {
         res.status(400).json({
           message: `ID ${id} is not available in list`,
           success: false,
         });
-      } else {
-        if (newEmail == undefined) {
-          await User.updateOne(
-            { _id: id },
-            { $set: { firstname: newFirstname } }
-          );
-          res.status(200).json({
-            message: "firstname updated",
-            success: true,
-          });
-        } else if (newFirstname == undefined) {
-          await User.updateOne({ _id: id }, { $set: { email: newEmail } });
-          res.status(200).json({
-            message: "email updated",
-            success: true,
-          });
-        } else {
-          await User.updateOne(
-            { _id: id },
-            { $set: { email: newEmail, firstname: newFirstname } }
-          );
-
-          res.status(200).json({
-            message: "User updated",
-            success: true,
-          });
-        }
       }
     };
 
@@ -125,18 +154,25 @@ app.delete("/delete/:id", (req, res) => {
   const id = req.params.id;
 
   const deleteUser = async () => {
-    const findUser = await User.findById(id);
+    try {
+      const findUser = await User.findById(id);
 
-    if (!findUser) {
+      if (!findUser) {
+        res.status(400).json({
+          message: `ID ${id} is not available in list`,
+          success: false,
+        });
+      } else {
+        await User.deleteOne({ _id: id });
+        res.status(200).json({
+          success: true,
+          message: "User deleted",
+        });
+      }
+    } catch (error) {
       res.status(400).json({
         message: `ID ${id} is not available in list`,
         success: false,
-      });
-    } else {
-      await User.deleteOne({ _id: id });
-      res.status(200).json({
-        success: true,
-        message: "User deleted",
       });
     }
   };
