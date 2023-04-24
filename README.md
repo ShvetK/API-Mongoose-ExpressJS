@@ -1,4 +1,4 @@
-# MongoDB opration using mongoose, NodeJS and ExpressJS
+# MongoDB operation using mongoose, NodeJS and ExpressJS
 
 - _Date Created_: 29 March, 2023
 - _Last Modification Date_: 29 March, 2023
